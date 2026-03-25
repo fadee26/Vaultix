@@ -572,7 +572,7 @@ impl VaultixEscrow {
         }
         
         // Add the new signature
-        escrow.collected_signatures.push_back(signer);
+        escrow.collected_signatures.push_back(signer.clone());
         
         env.storage().persistent().set(&storage_key, &escrow);
         
@@ -618,13 +618,13 @@ impl VaultixEscrow {
             .get(milestone_index)
             .ok_or(Error::MilestoneNotFound)?;
         
-        if milestone.amount >= escrow.threshold_amount {
+        if milestone.amount > escrow.threshold_amount {
             // Check if we have enough signatures
             if escrow.collected_signatures.len() < escrow.required_signatures {
                 return Err(Error::UnauthorizedAccess);
             }
         } else {
-            // For amounts below threshold, only depositor can release
+            // For amounts at or below threshold, only depositor can release
             escrow.depositor.require_auth();
         }
 
@@ -730,7 +730,7 @@ impl VaultixEscrow {
         }
         
         // For amounts exceeding the threshold, check multi-signature requirements
-        if milestone.amount >= escrow.threshold_amount {
+        if milestone.amount > escrow.threshold_amount {
             // Check if we have enough signatures
             if escrow.collected_signatures.len() < escrow.required_signatures {
                 return Err(Error::UnauthorizedAccess);

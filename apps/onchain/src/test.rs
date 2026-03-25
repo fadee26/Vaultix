@@ -2132,7 +2132,6 @@ fn test_zero_fee_valid() {
     assert_eq!(token_client.balance(&treasury), 0i128);
 }
 
-#
 #[test]
 fn test_configure_multisig_threshold() {
     let env = Env::default();
