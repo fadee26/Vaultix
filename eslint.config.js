@@ -1,4 +1,6 @@
 import { Linter } from "eslint";
+import tseslint from "@typescript-eslint/eslint-plugin";
+import prettierPlugin from "eslint-plugin-prettier";
 
 /** @type {Linter.FlatConfig[]} */
 const config = [
@@ -7,15 +9,15 @@ const config = [
       parser: "@typescript-eslint/parser",
       ecmaVersion: 2020,
       sourceType: "module",
-    },
-    env: {
-      browser: true,
-      node: true,
-      es6: true,
+      globals: {
+        browser: "readonly",
+        node: "readonly",
+        es6: "readonly",
+      },
     },
     plugins: {
-      "@typescript-eslint": require("@typescript-eslint/eslint-plugin"),
-      prettier: require("eslint-plugin-prettier"),
+      "@typescript-eslint": tseslint,
+      prettier: prettierPlugin,
     },
     rules: {
       // Add your custom rules here
