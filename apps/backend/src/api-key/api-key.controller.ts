@@ -25,10 +25,7 @@ export class ApiKeyController {
   constructor(private readonly apiKeysService: ApiKeysService) {}
 
   @Post()
-  async create(
-    @Req() req: AuthenticatedRequest,
-    @Body() dto: CreateApiKeyDto,
-  ) {
+  async create(@Req() req: AuthenticatedRequest, @Body() dto: CreateApiKeyDto) {
     const userId = req.user.sub;
     return this.apiKeysService.create(userId, dto);
   }
