@@ -18,6 +18,9 @@ export class Notification {
   @Column()
   userId: string;
 
+  @Column({ nullable: true })
+  escrowId?: string;
+
   @Column({ type: 'simple-enum', enum: NotificationEventType })
   eventType: NotificationEventType;
 
@@ -33,6 +36,9 @@ export class Notification {
 
   @Column({ default: 0 })
   retryCount: number;
+
+  @Column({ nullable: true })
+  readAt: Date | null;
 
   @CreateDateColumn()
   createdAt: Date;

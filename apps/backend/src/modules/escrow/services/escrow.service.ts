@@ -1039,9 +1039,7 @@ export class EscrowService {
       where: { id: userId },
     });
 
-    return (
-      user?.role === UserRole.ADMIN || user?.role === UserRole.SUPER_ADMIN
-    );
+    return user?.role === UserRole.ADMIN || user?.role === UserRole.SUPER_ADMIN;
   }
 
   private async expireEscrow(

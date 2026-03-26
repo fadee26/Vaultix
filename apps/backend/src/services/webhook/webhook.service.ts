@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ForbiddenException,
   Logger,
+  UnprocessableEntityException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -17,6 +18,8 @@ import axios from 'axios';
 @Injectable()
 export class WebhookService {
   private readonly logger = new Logger(WebhookService.name);
+  private readonly MAX_WEBHOOKS_PER_USER = 10;
+  private readonly MAX_EVENTS_PER_WEBHOOK = 8;
 
   constructor(
     @InjectRepository(Webhook)
@@ -29,7 +32,21 @@ export class WebhookService {
     secret: string,
     events: WebhookEvent[],
   ): Promise<Webhook> {
-    // TODO: Add rate limiting logic here
+    // Check maximum events per webhook
+    if (events.length > this.MAX_EVENTS_PER_WEBHOOK) {
+      throw new UnprocessableEntityException(
+        `Maximum ${this.MAX_EVENTS_PER_WEBHOOK} events allowed per webhook`,
+      );
+    }
+
+    // Check maximum webhooks per user
+    const existingWebhooks = await this.getUserWebhooks(userId);
+    if (existingWebhooks.length >= this.MAX_WEBHOOKS_PER_USER) {
+      throw new UnprocessableEntityException(
+        `Maximum ${this.MAX_WEBHOOKS_PER_USER} webhooks allowed per user`,
+      );
+    }
+
     const webhook = this.webhookRepo.create({
       url,
       secret,

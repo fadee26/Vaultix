@@ -3,6 +3,7 @@
 import { useState, useEffect, JSX } from "react";
 import Link from "next/link";
 import { Menu, X } from "lucide-react";
+import NotificationBell from "@/components/common/NotificationBell";
 
 export default function Navbar(): JSX.Element {
   const [isMenuOpen, setIsMenuOpen] = useState<boolean>(false);
@@ -67,6 +68,7 @@ export default function Navbar(): JSX.Element {
             >
               GitHub
             </Link>
+            <NotificationBell />
           </div>
 
           {/* Mobile Navigation Toggle */}
@@ -115,6 +117,9 @@ export default function Navbar(): JSX.Element {
             >
               GitHub
             </Link>
+            <div className="pt-4 border-t border-gray-700">
+              <NotificationBell />
+            </div>
           </div>
         </div>
       )}
