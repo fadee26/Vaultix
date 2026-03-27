@@ -1,4 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import {
   NotificationChannel,
   NotificationEventType,
@@ -8,7 +9,7 @@ import { NotificationSender } from './interface/notification-sender.interface';
 import { Notification } from './entities/notification.entity';
 import { InjectRepository } from '@nestjs/typeorm';
 import { WebhookSender } from './senders/webhook.sender';
-import { Repository } from 'typeorm';
+import { Repository, IsNull } from 'typeorm';
 import { EmailSender } from './senders/email.sender';
 import { PreferenceService } from './preference.service';
 
@@ -46,13 +47,16 @@ export class NotificationService {
           userId,
           eventType,
           payload,
+          escrowId: (payload.escrowId as string) || undefined,
           status: NotificationStatus.PENDING,
         }),
       );
     }
   }
 
+  @Cron(CronExpression.EVERY_30_SECONDS)
   async processPendingNotifications() {
+    this.logger.debug('Starting pending notifications processing');
     const pending = await this.repo.find({
       where: { status: NotificationStatus.PENDING },
       take: 50,
@@ -96,6 +100,33 @@ export class NotificationService {
       where: { userId },
       order: { createdAt: 'DESC' },
       take: 50,
+    });
+  }
+
+  async markAsRead(userId: string, notificationId?: string) {
+    if (notificationId) {
+      const notification = await this.repo.findOne({
+        where: { id: notificationId, userId },
+      });
+      if (!notification) {
+        throw new Error('Notification not found');
+      }
+      notification.readAt = new Date();
+      await this.repo.save(notification);
+      return notification;
+    } else {
+      // Mark all as read
+      await this.repo.update(
+        { userId, readAt: IsNull() },
+        { readAt: new Date() },
+      );
+      return { success: true };
+    }
+  }
+
+  async getUnreadCount(userId: string): Promise<number> {
+    return this.repo.count({
+      where: { userId, readAt: IsNull() },
     });
   }
 }

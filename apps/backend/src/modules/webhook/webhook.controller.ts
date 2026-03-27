@@ -7,10 +7,12 @@ import {
   Param,
   Req,
   UseGuards,
+  UseInterceptors,
 } from '@nestjs/common';
 import { WebhookService } from '../../services/webhook/webhook.service';
 import { WebhookEvent } from '../../types/webhook/webhook.types';
 import { AuthGuard } from '../auth/middleware/auth.guard';
+import { ThrottlerGuard } from '@nestjs/throttler';
 
 class CreateWebhookDto {
   url: string;
@@ -24,11 +26,11 @@ export class WebhookController {
   constructor(private readonly webhookService: WebhookService) {}
 
   @Post()
+  @UseInterceptors(ThrottlerGuard)
   async create(
     @Req() req: { user: { id: string } },
     @Body() dto: CreateWebhookDto,
   ) {
-    // TODO: Rate limit per user
     const userId = req?.user?.id;
     if (!userId) throw new Error('User ID missing');
     return this.webhookService.createWebhook(

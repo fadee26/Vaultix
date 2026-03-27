@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
-import { ScheduleModule } from '@nestjs/schedule';
 import { Escrow } from './entities/escrow.entity';
 import { Party } from './entities/party.entity';
 import { Condition } from './entities/condition.entity';
@@ -12,14 +11,22 @@ import { EscrowController } from './controllers/escrow.controller';
 import { EscrowSchedulerController } from './controllers/escrow-scheduler.controller';
 import { EventsController } from './controllers/events.controller';
 import { EscrowAccessGuard } from './guards/escrow-access.guard';
+import { EscrowExpireGuard } from './guards/escrow-expire.guard';
 import { AuthModule } from '../auth/auth.module';
 import { EscrowStellarIntegrationService } from './services/escrow-stellar-integration.service';
 import { WebhookModule } from '../webhook/webhook.module';
+import { User } from '../user/entities/user.entity';
 
 @Module({
   imports: [
-    ScheduleModule.forRoot(),
-    TypeOrmModule.forFeature([Escrow, Party, Condition, EscrowEvent, Dispute]),
+    TypeOrmModule.forFeature([
+      Escrow,
+      Party,
+      Condition,
+      EscrowEvent,
+      Dispute,
+      User,
+    ]),
     AuthModule,
     WebhookModule,
   ],
@@ -29,6 +36,7 @@ import { WebhookModule } from '../webhook/webhook.module';
     EscrowSchedulerService,
     EscrowStellarIntegrationService,
     EscrowAccessGuard,
+    EscrowExpireGuard,
   ],
   exports: [EscrowService, EscrowSchedulerService],
 })
