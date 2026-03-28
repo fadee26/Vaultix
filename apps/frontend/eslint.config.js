@@ -1,33 +1,35 @@
-import { Linter } from "eslint";
-import typescriptPlugin from "@typescript-eslint/eslint-plugin";
-import prettierPlugin from "eslint-plugin-prettier";
+import js from "@eslint/js";
+import tseslint from "typescript-eslint";
+import prettier from "eslint-plugin-prettier";
 
-/** @type {Linter.Config[]} */
-const config = [
+/** @type {import("eslint").Linter.FlatConfig[]} */
+export default [
+  // Base JS recommended rules
+  js.configs.recommended,
+
+  // TypeScript recommended rules
+  ...tseslint.configs.recommended,
+
   {
+    files: ["**/*.{ts,tsx}"],
+
     languageOptions: {
-      parser: "@typescript-eslint/parser",
+      parser: tseslint.parser,
       ecmaVersion: 2020,
       sourceType: "module",
     },
-    env: {
-      browser: true,
-      node: true,
-      es6: true,
-    },
+
     plugins: {
-      "@typescript-eslint": typescriptPlugin,
-      prettier: prettierPlugin,
+      "@typescript-eslint": tseslint.plugin,
+      prettier,
     },
+
     rules: {
-      // Add your custom rules here
+      "prettier/prettier": "error",
+
+      // Example custom rules
+      "@typescript-eslint/no-unused-vars": "warn",
+      "@typescript-eslint/no-explicit-any": "off",
     },
-    extends: [
-      "eslint:recommended",
-      "plugin:@typescript-eslint/recommended",
-      "plugin:prettier/recommended",
-    ],
   },
 ];
-
-export default config;
