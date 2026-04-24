@@ -56,6 +56,22 @@ export class StellarService {
   }
 
   /**
+   * Validates an asset against the Stellar Horizon API
+   * @param code Asset code
+   * @param issuer Asset issuer
+   */
+  async validateAsset(code: string, issuer: string): Promise<boolean> {
+    try {
+      this.logger.log(`Validating asset: ${code} from ${issuer}`);
+      const assets = await this.server.assets().forCode(code).forIssuer(issuer).call();
+      return assets.records.length > 0;
+    } catch (error) {
+      this.logger.error(`Failed to validate asset ${code}: ${this.getErrorMessage(error)}`);
+      return false;
+    }
+  }
+
+  /**
    * Builds a transaction with the provided operations
    * @param sourcePublicKey Public key of the source account
    * @param operations Array of operations to include in the transaction

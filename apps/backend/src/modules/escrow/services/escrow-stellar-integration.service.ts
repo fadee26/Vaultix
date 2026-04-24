@@ -12,6 +12,7 @@ import {
   StellarSubmitTransactionResponse,
   StellarTransactionResponse,
 } from '../../../types/stellar.types';
+import * as StellarSdk from '@stellar/stellar-sdk';
 
 @Injectable()
 export class EscrowStellarIntegrationService {
@@ -80,7 +81,7 @@ export class EscrowStellarIntegrationService {
           escrowId,
           depositor.user.walletAddress, // User's Stellar wallet address
           recipient.user.walletAddress, // User's Stellar wallet address
-          'native', // Using XLM as the asset for this example
+          escrow.assetCode === 'XLM' ? 'native' : new StellarSdk.Asset(escrow.assetCode, escrow.assetIssuer).contractId(this.config.networkPassphrase),
           milestones,
           escrow.expiresAt
             ? Math.floor(new Date(escrow.expiresAt).getTime() / 1000)
@@ -122,6 +123,7 @@ export class EscrowStellarIntegrationService {
     funderPublicKey: string,
     amount: string,
     assetCode: string = 'XLM',
+    assetIssuer?: string,
   ): Promise<string> {
     try {
       this.logger.log(
