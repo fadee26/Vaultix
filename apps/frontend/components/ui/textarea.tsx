@@ -44,4 +44,6 @@ const TextArea = forwardRef<HTMLTextAreaElement, TextAreaProps>(
 TextArea.displayName = 'TextArea';
 
 export { TextArea };
+// Alias for compatibility with lowercase imports
+export { TextArea as Textarea };
 export default TextArea;
