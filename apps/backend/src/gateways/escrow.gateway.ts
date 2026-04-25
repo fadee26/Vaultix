@@ -45,11 +45,11 @@ export class EscrowGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
 
       // Verify JWT
-      const decoded = this.jwtService.verify(token) as {
+      const decoded: { sub?: string; userId?: string } = this.jwtService.verify(token) as {
         sub?: string;
         userId?: string;
       };
-      const userId: string | undefined = decoded.sub || decoded.userId;
+      const userId: string | undefined = decoded?.sub || decoded?.userId;
 
       if (!userId) {
         this.logger.warn(`Connection rejected: Invalid token (${client.id})`);
