@@ -2,7 +2,7 @@ import React, { forwardRef, createContext, useContext, useState } from 'react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 
-interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
+interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>, 'onChange'> {
   label?: string;
   error?: string;
   helperText?: string;
@@ -67,7 +67,6 @@ const SelectRoot = forwardRef<HTMLSelectElement, SelectProps>(
             value={value}
             onChange={(e) => {
               onValueChange?.(e.target.value);
-              props.onChange?.(e);
             }}
             className={twMerge(
               'block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm p-2 border text-gray-900',
