@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import StatusTabs from '@/component/dashboard/StatusTabs';
-import EscrowList from '@/component/dashboard/EscrowList';
-import EscrowFilters from '@/component/dashboard/EscrowFilters';
+import StatusTabs from '@/components/dashboard/StatusTabs';
+import EscrowList from '@/components/dashboard/EscrowList';
+import EscrowFilters from '@/components/dashboard/EscrowFilters';
 import { useEscrows } from '../../hooks/useEscrows';
 import { IEscrow } from '@/types/escrow';
 import ActivityFeed from '@/components/common/ActivityFeed';

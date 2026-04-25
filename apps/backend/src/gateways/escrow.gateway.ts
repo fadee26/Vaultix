@@ -4,11 +4,14 @@ import {
   SubscribeMessage,
   OnGatewayConnection,
   OnGatewayDisconnect,
-  WsException,
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
-import { Logger, UseGuards } from '@nestjs/common';
+import { Logger } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+
+interface EscrowEventData {
+  [key: string]: unknown;
+}
 
 @WebSocketGateway({
   cors: {
@@ -28,7 +31,7 @@ export class EscrowGateway implements OnGatewayConnection, OnGatewayDisconnect {
 
   constructor(private jwtService: JwtService) {}
 
-  async handleConnection(client: Socket) {
+  handleConnection(client: Socket) {
     try {
       // Extract token from handshake
       const token =
@@ -42,7 +45,10 @@ export class EscrowGateway implements OnGatewayConnection, OnGatewayDisconnect {
       }
 
       // Verify JWT
-      const decoded = this.jwtService.verify(token);
+      const decoded = this.jwtService.verify(token) as {
+        sub?: string;
+        userId?: string;
+      };
       const userId = decoded.sub || decoded.userId;
 
       if (!userId) {
@@ -67,7 +73,7 @@ export class EscrowGateway implements OnGatewayConnection, OnGatewayDisconnect {
     }
   }
 
-  handleDisconnect(client: Socket) {
+  handleDisconnect(client: Socket): void {
     const userId = this.socketUserMap.get(client.id);
     if (userId) {
       // Remove from user mapping
@@ -83,7 +89,7 @@ export class EscrowGateway implements OnGatewayConnection, OnGatewayDisconnect {
       // Clean up escroom subscriptions
       const escrowIds = this.socketEscrowMap.get(client.id) || [];
       escrowIds.forEach((escrowId) => {
-        client.leave(`escrow:${escrowId}`);
+        void client.leave(`escrow:${escrowId}`);
       });
       this.socketEscrowMap.delete(client.id);
 
@@ -92,7 +98,7 @@ export class EscrowGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('joinEscrow')
-  handleJoinEscrow(client: Socket, escrowId: string) {
+  handleJoinEscrow(client: Socket, escrowId: string): void {
     const room = `escrow:${escrowId}`;
     client.join(room);
 
@@ -108,7 +114,7 @@ export class EscrowGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   @SubscribeMessage('leaveEscrow')
-  handleLeaveEscrow(client: Socket, escrowId: string) {
+  handleLeaveEscrow(client: Socket, escrowId: string): void {
     const room = `escrow:${escrowId}`;
     client.leave(room);
 
@@ -121,7 +127,7 @@ export class EscrowGateway implements OnGatewayConnection, OnGatewayDisconnect {
   }
 
   // Broadcast methods - called from EscrowService
-  broadcastEscrowStatusChanged(escrowId: string, data: any) {
+  broadcastEscrowStatusChanged(escrowId: string, data: EscrowEventData): void {
     this.server.to(`escrow:${escrowId}`).emit('escrow:status_changed', {
       escrowId,
       ...data,
@@ -129,7 +135,7 @@ export class EscrowGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
-  broadcastMilestoneReleased(escrowId: string, data: any) {
+  broadcastMilestoneReleased(escrowId: string, data: EscrowEventData): void {
     this.server.to(`escrow:${escrowId}`).emit('escrow:milestone_released', {
       escrowId,
       ...data,
@@ -137,7 +143,7 @@ export class EscrowGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
-  broadcastDisputeFiled(escrowId: string, data: any) {
+  broadcastDisputeFiled(escrowId: string, data: EscrowEventData): void {
     this.server.to(`escrow:${escrowId}`).emit('escrow:dispute_filed', {
       escrowId,
       ...data,
@@ -145,7 +151,7 @@ export class EscrowGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
-  broadcastDisputeResolved(escrowId: string, data: any) {
+  broadcastDisputeResolved(escrowId: string, data: EscrowEventData): void {
     this.server.to(`escrow:${escrowId}`).emit('escrow:dispute_resolved', {
       escrowId,
       ...data,
@@ -153,7 +159,7 @@ export class EscrowGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
-  broadcastPartyJoined(escrowId: string, data: any) {
+  broadcastPartyJoined(escrowId: string, data: EscrowEventData): void {
     this.server.to(`escrow:${escrowId}`).emit('escrow:party_joined', {
       escrowId,
       ...data,
@@ -161,7 +167,7 @@ export class EscrowGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
-  broadcastConditionFulfilled(escrowId: string, data: any) {
+  broadcastConditionFulfilled(escrowId: string, data: EscrowEventData): void {
     this.server.to(`escrow:${escrowId}`).emit('escrow:condition_fulfilled', {
       escrowId,
       ...data,
@@ -169,7 +175,7 @@ export class EscrowGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
-  broadcastConditionConfirmed(escrowId: string, data: any) {
+  broadcastConditionConfirmed(escrowId: string, data: EscrowEventData): void {
     this.server.to(`escrow:${escrowId}`).emit('escrow:condition_confirmed', {
       escrowId,
       ...data,
@@ -177,7 +183,7 @@ export class EscrowGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
-  broadcastNotification(userId: string, data: any) {
+  broadcastNotification(userId: string, data: EscrowEventData): void {
     const socketIds = this.userSocketMap.get(userId) || [];
     socketIds.forEach((socketId) => {
       this.server.to(socketId).emit('notification:new', {
@@ -187,7 +193,7 @@ export class EscrowGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
-  broadcastEscrowFunded(escrowId: string, data: any) {
+  broadcastEscrowFunded(escrowId: string, data: EscrowEventData): void {
     this.server.to(`escrow:${escrowId}`).emit('escrow:funded', {
       escrowId,
       ...data,
@@ -195,7 +201,7 @@ export class EscrowGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
-  broadcastEscrowCompleted(escrowId: string, data: any) {
+  broadcastEscrowCompleted(escrowId: string, data: EscrowEventData): void {
     this.server.to(`escrow:${escrowId}`).emit('escrow:completed', {
       escrowId,
       ...data,
@@ -203,7 +209,7 @@ export class EscrowGateway implements OnGatewayConnection, OnGatewayDisconnect {
     });
   }
 
-  broadcastEscrowCancelled(escrowId: string, data: any) {
+  broadcastEscrowCancelled(escrowId: string, data: EscrowEventData): void {
     this.server.to(`escrow:${escrowId}`).emit('escrow:cancelled', {
       escrowId,
       ...data,

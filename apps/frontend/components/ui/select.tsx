@@ -52,4 +52,24 @@ const Select = forwardRef<HTMLSelectElement, SelectProps>(
 
 Select.displayName = 'Select';
 
+// Radix UI-style exports for compatibility
+const SelectContent = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <div className={className}>{children}</div>
+);
+
+const SelectTrigger = ({ children, className }: { children: React.ReactNode; className?: string }) => (
+  <div className={className}>{children}</div>
+);
+
+const SelectValue = ({ placeholder, className }: { placeholder?: string; className?: string }) => (
+  <span className={className}>{placeholder}</span>
+);
+
+const SelectItem = ({ children, value, className }: { children: React.ReactNode; value: string; className?: string }) => (
+  <option value={value} className={className}>
+    {children}
+  </option>
+);
+
+export { Select, SelectContent, SelectItem, SelectTrigger, SelectValue };
 export default Select;

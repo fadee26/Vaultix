@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Input from '@/component/ui/Input';
+import Input from '@/components/ui/input';
 
 interface EscrowFiltersProps {
   searchQuery: string;
